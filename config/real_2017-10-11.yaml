@@ -1,0 +1,51 @@
+# Datos reales: Cboe DataShop, Option EOD Summary con Calcs, snapshot de las 15:45 ET.
+# Especificación fijada el 29/10/2026, antes de calibrar con datos reales (ver el README).
+nombre: real_2017-10-11
+fuente: real
+escenario: calma                        # VIX de cierre <= 12 (fecha tranquila); regla fijada el 28/10/2026
+datos:
+  archivo: datos/UnderlyingOptionsEODCalcs_2017-10-11.csv   # (SHA-256 en el README y en cada resumen)
+  quote_date: "2017-10-11"
+  root: SPX                            # raíz mensual, liquidación AM; nunca se mezcla con SPXW
+  expiration: "2017-11-17"
+hora_liquidacion: "09:30"              # valor de liquidación con la apertura del día de vencimiento (especificación de Cboe para las SPX mensuales)
+limpieza:
+  umbral_spread_rel: 0.5               # spread relativo <= 0,5
+  moneyness_unidad: sigma_atm          # el intervalo se lee en unidades de sigma_atm sqrt(T)
+  moneyness: [-6.0, 3.0]               # x_K en [-6; 3], la misma regla en las dos fechas
+  arbitraje_estatico_sobre: bidask
+  paridad_pesos: robusta               # soft_l1, pesos 1/(s_C^2 + s_P^2)
+  ventana_paridad: 0.10                # ±10 % en log(K/S0)
+  r_fuente: externa                    # r de la letra a 4 semanas; el forward de la paridad
+r_externa:                             # FRED, serie DTB4WK, del día (o del hábil anterior, y se dice)
+  serie: DTB4WK
+  archivo: datos/externos/DTB4WK_consulta-2026-10-29.csv
+  fecha: "2017-10-11"
+cotas:                                 # cotas de la optimización
+  sigma: [0.02, 1.5]
+  lam: [0.001, 40.0]
+  logit_p: [-6.0, 6.0]
+  eta1_menos_1: [0.05, 300.0]
+  eta2: [0.5, 300.0]
+calibracion:
+  pesos: b                             # w_i = 1/vega_i^2
+  sigma_bs: LS                         # sigma de Black-Scholes por mínimos cuadrados con los mismos pesos
+  criterio_C: eps0                     # R(theta) <= eps0^2
+  criterio_C_respaldo: kappa           # si C es vacío con eps0, R <= kappa^2 R_min, y se dice
+  kappa: 1.2
+  factor_parecido: 1.2                 # mínimos conservados con R <= 1,2 R_min
+  perfil_lambda_max: 40.0              # el perfil llega a la cota superior de lambda
+  n_inicios: 64                        # puntos Sobol de arranque
+hipotesis:
+  umbral_c: 0.10                       # "no despreciable" = fracción por salto >= 0,10 en la distancia de Delta_max
+  parte_d: true                        # ancho máximo de la banda sobre C > s̄ en estrés, los dos contratos
+  s_bar: spread_medio                  # spread medio de las europeas usadas (el ATM se reporta al lado)
+barreras: {x_min: 0.1, n_x: 25, K_relativo: 1.0}   # K = S0, 25 distancias desde x = 0,1 hasta x_max
+inversion:                             # n = 14, B = 2, 45 dígitos; criterio de convergencia de n:
+  n_GS: 14                             #   n es el punto de partida; sube de a uno hasta que dos diferencias
+  B: 2                                 #   seguidas de la probabilidad invertida quedan por debajo de tol
+  dps: 45                              #   (máximo n_max); la precisión sube por tramos de n
+  adaptativo: true
+  tol: 1.0e-6
+  n_max: 100
+monte_carlo: {n: 2000000, semilla: 0}  # Monte Carlo en los parámetros calibrados

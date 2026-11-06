@@ -1,0 +1,7 @@
+# Versiones con las que se corrieron las tablas y figuras de la tesis (Python 3.14.4).
+mpmath==1.4.1
+numpy==2.5.4
+scipy==1.18.1
+pandas==3.1.0
+matplotlib==3.11.2
+pyyaml==6.0.3
