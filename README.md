@@ -37,6 +37,7 @@ R="config/real_2017-10-11.yaml config/real_2020-03-16.yaml"
 python scripts/tasa_externa.py --config $R                      # r de la letra a 4 semanas
 python scripts/correr_todo.py --config $R --jobs 4              # tablas 5.1 a 5.3, calibración, barreras, figuras
 for c in $R; do python scripts/mc_real.py --config $c; python scripts/sensibilidad_r.py --config $c --jobs 4; done
+for c in $R; do python scripts/mc_grilla.py --config $c; done   # Monte Carlo en grilla (exploratorio), después de mc_real.py
 python scripts/hipotesis.py --config $R
 python scripts/banda_kappa.py --config $R --jobs 4
 python scripts/bidask_en_C.py --config $R
